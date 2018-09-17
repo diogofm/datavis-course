@@ -8,7 +8,7 @@
 
 <body>
 <div id="chart"></div>
-<div>REPOSTAS:</br>Sim, porém é baixa.</br>É possível enxergar sim outliers.</br>Avatar, Harry Potter e as Relíquias da Morte 2, bilheteria fora do padrão positivamente. Piratas do Caribe: No Fim do Mundo não seguiu o padrão, negativamente.</div>
+<div>RESPOSTAS:</br>Sim, porém é baixa.</br>É possível enxergar sim outliers.</br>Avatar, Harry Potter e as Relíquias da Morte 2, bilheteria fora do padrão positivamente. Piratas do Caribe: No Fim do Mundo não seguiu o padrão, negativamente.</div>
 
 <script type="text/javascript">
     // Primeiro definimos o objeto margin
@@ -50,7 +50,7 @@
               .attr("class", (d, i) => i)
               .attr("cx", d => xScale(d[1]))
               .attr("cy", d => yScale(d[2]))
-              .attr("r", 7)
+              .attr("r", 5)
               .on("mouseover", toggleTextOn)
               .on("mouseout", toggleTextOff);
 
@@ -60,10 +60,10 @@
           .append("text")
               .attr("class", (d, i) => "text" + i)
               .attr("display", "none")
-              .attr("x", d => xScale(d[1]) + 3)
-              .attr("y", d => yScale(d[2]) - 3)
+              .attr("x", d => xScale(d[1]))
+              .attr("y", d => yScale(d[2]))
               .attr("font-family", "sans-serif")
-              .attr("font-size", "11px")
+              .attr("font-size", "15px")
               .attr("fill", "red")
               .text( d =>  d[0]);
     
@@ -95,7 +95,7 @@
     });
 
     function toggleTextOn(d, i) {
-      d3.select(this).attr("fill", "green");
+      d3.select(this).attr("fill", "blue");
       d3.select(".text"+this.getAttribute('class')).attr("display", "block")
     }
     function toggleTextOff(d, i) {
