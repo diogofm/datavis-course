@@ -15,6 +15,10 @@
 
 [atividade1209.html](d3_scale/atividade1209.html)<br>
 
+## Aula do dia 17/09/2018
+
+[atividade1709.html](d3_update/atividade1709.html)<br>
+
 ---
 
 Para saber mais sobre a sintaxe markdown, veja [este guia](https://guides.github.com/features/mastering-markdown/).
