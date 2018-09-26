@@ -14,6 +14,7 @@
     <div id="chart-ano">
         <h1>Total apurado por ano (milhões)</h1>
     </div>
+    
     <div id="chart-genero">
         <h1>Bilheteria por genero (milhões)</h1>
     </div>
@@ -25,11 +26,6 @@
 
 
         d3.json("data/movies.json").then(function(data){
-            // data.forEach(function(d){
-            //     d.Year = +d.Year;
-            //     d.Worldwide_Gross_M  = +d.Worldwide_Gross_M;
-            //     d.Genre = +d.Genre;
-            // });
             let facts = crossfilter(data);
             
             let dimensionYear = facts.dimension(d => d.Year);
