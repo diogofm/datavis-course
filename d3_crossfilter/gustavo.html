@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bilheterias</title>
+    <link rel="stylesheet" href="css/dc.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/crossfilter.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="js/dc.min.js"></script>
+
+</head>
+<body>
+    <div id="yearChart">
+        <h1>Bilheteria arrecadada por ano em milhões</h1>
+    </div>
+    <div id="genreChart">
+        <h1>Bilheteria arrecadada por gênero em milhões</h1>
+    </div>
+
+    <script type="text/javascript">
+        let barYearChart = dc.barChart('#yearChart');
+        let barGenreChart = dc.barChart('#genreChart');
+        d3.json("data/movies.json").then(function(data){
+            let facts = crossfilter(data),
+                dimensionYear = facts.dimension( d => d.Year),
+                dimensionGenre = facts.dimension( d => d.Genre),
+                groupGrossYear = dimensionYear.group().reduceSum( d => d.Worldwide_Gross_M),
+                groupGrossGenre = dimensionGenre.group().reduceSum( d => d.Worldwide_Gross_M);
+            barYearChart
+                .width(720)
+                .height(480)
+                .dimension(dimensionYear)
+                .x(d3.scaleBand())
+                .xUnits(dc.units.ordinal)
+                .group(groupGrossYear)
+                .barPadding(0.1)
+                .yAxisLabel("", 20);
+            barGenreChart
+                .width(720)
+                .height(480)
+                .x(d3.scaleBand())
+                .xUnits(dc.units.ordinal)
+                .dimension(dimensionGenre)
+                .group(groupGrossGenre)
+                .barPadding(0.1)
+                .yAxisLabel("", 20);
+            dc.renderAll();
+        });
+    </script>           
+</body>
+</html>

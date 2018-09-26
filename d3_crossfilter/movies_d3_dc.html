@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bilheteria por ano e por genero</title>
+    <link rel="stylesheet" href="css/dc.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/crossfilter.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="js/dc.min.js"></script>
+
+</head>
+<body>
+    <div id="chart-ano">
+        <h1>Total apurado por ano (milhões)</h1>
+    </div>
+    <div id="chart-genero">
+        <h1>Bilheteria por genero (milhões)</h1>
+    </div>
+
+    <script type="text/javascript">
+
+        let barChartYear = dc.barChart('#chart-ano');
+        let barChartGenre = dc.barChart('#chart-genero');
+
+
+        d3.json("data/movies.json").then(function(data){
+            // data.forEach(function(d){
+            //     d.Year = +d.Year;
+            //     d.Worldwide_Gross_M  = +d.Worldwide_Gross_M;
+            //     d.Genre = +d.Genre;
+            // });
+            let facts = crossfilter(data);
+            
+            let dimensionYear = facts.dimension(d => d.Year);
+            let dimensionGenre = facts.dimension(d => d.Genre);
+
+            let groupGrossYear = dimensionYear.group().reduceSum(d => d.Worldwide_Gross_M);
+            let groupGrossGenre = dimensionGenre.group().reduceSum( d => d.Worldwide_Gross_M);
+
+            barChartYear.width(720)
+                        .height(480)
+                        .dimension(dimensionYear)
+                        .x(d3.scaleBand())
+                        .xUnits(dc.units.ordinal)
+                        .group(groupGrossYear)
+                        .barPadding(0.1)
+                        .yAxisLabel("", 20);
+
+            barChartGenre.width(720)
+                        .height(480)
+                        .x(d3.scaleBand())
+                        .xUnits(dc.units.ordinal)
+                        .dimension(dimensionGenre)
+                        .group(groupGrossGenre)
+                        .barPadding(0.1)
+                        .yAxisLabel("", 20);
+
+            dc.renderAll();
+        });
+
+    </script>           
+</body>
+</html>
