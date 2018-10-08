@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"
+	integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+	crossorigin=""/>
+	<!-- Make sure you put this AFTER Leaflet's CSS -->
+<script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"
+integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA=="
+crossorigin=""></script>
+
+    <title> Earthquake Data</title>
+
+    <!-- Custom styles for this template -->
+	<link rel="stylesheet" href="css/dc.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/crossfilter.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="js/dc.min.js"></script>
+</head>
+<body>
+	<main role="main" class="container">
+	<div class="center">
+	        <h1> Crimes em Chicago </h1>
+    </div>
+  	<div id="mapid" class="col-6"></div>
+    <div class='row'>
+	<div class="chart" id="crimesByTypeChart">
+	    	<h3 class="left">Numero de crimes por tipo</h3>
+			</div>
+			<div class="chart" id="crimesByDayChart">
+	    		<h3 class="left">Numero de crimes por dia</h3>
+			</div>
+  	</main>
+	        <script type="text/javascript">   
+	        	let map = L.map('mapid').setView([41.865871, -87.628288], 10);
+	          	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { 
+	            	attribution: '&copy; <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors', 
+	            	maxZoom: 17})
+	            	.addTo(map);
+					
+				let barChart    = dc.barChart('#crimesByTypeChart');
+				let	seriesChart = dc.seriesChart('#crimesByDayChart');
+					
+	            let colorScale = d3.scaleOrdinal()
+									.domain(["HOMICIDE", "ROBBERY", "BURGLARY"])
+									.range(["#ca0020", "#0571b0", "#fdae61"]);
+
+	            function toTitleCase(str){
+	            	return str.split(' ')
+								.map(w => w[0].toUpperCase() + w.substr(1).toLowerCase())
+								.join(' ');
+	            }
+									
+	        d3.csv("chicago_crimes_sep_2018.csv").then(function (data) {
+	            let dtgFormat 		= d3.utcParse("%m/%d/%Y %H:%M:%S"),
+	            	dateFormat		= d3.timeFormat("%m/%d/%Y"),
+	            	timeFormat		= d3.timeFormat("%I:%M %p"),
+	            	dayNameFormat	= d3.timeFormat("%A");
+				
+	          	data.forEach(function(d){
+	            	d.latitude      = +d.Latitude;
+	            	d.longitude     = +d.Longitude;
+	            	d.date 			= dtgFormat(d.Date.substr(0,19));
+					d.type			= toTitleCase(d["Primary Type"]);
+					d.location      = toTitleCase(d["Location Description"]);
+					d.description   = toTitleCase(d.Description);
+	          	});
+	          	let facts = crossfilter(data);
+				
+	          	let typeDimension 		= facts.dimension(d => d.type),
+	          		timeDimension 		= facts.dimension(d => d.Date),
+			  		typeByDayDimension 	= facts.dimension(d => [d.type,d3.timeDay(d.date)]);
+			  
+			  	let typeGroup 		= typeDimension.group(),
+			  		typeByDayGroup 	= typeByDayDimension.group();
+					
+			  	let typesOrdered = typeGroup.top(Infinity).map(d => d.key);
+				let popupText;
+	        	data.forEach(function(d){
+	            	let circle = L.circle([d.latitude, d.longitude], 100, {
+	                	color: colorScale(d.type),
+	                	weight: 2,
+	                	fillColor: colorScale(d.type),
+	                	fillOpacity: 0.5})
+	                	.addTo(map);
+					popupText = "Tipo de Crime: "+d.type+"<br>"
+								+"Data: "+dateFormat(d.date)+" ("+dayNameFormat(d.date)+")<br>"
+								+"Horario: "+timeFormat(d.date)+"<br>"
+								+"Local: "+d.location+"<br>"
+								+d.description+"<br>";
+	            	circle.bindPopup(popupText);
+	        	});
+				
+	        	barChart.width(600)
+	                .height(400)
+	                .margins({top: 20, right: 50, bottom: 20, left: 40})
+	            	.x(d3.scaleOrdinal().domain(typesOrdered))
+	                .xUnits(dc.units.ordinal)
+	                .barPadding(0.4)
+	                .dimension(typeDimension)
+	                .group(typeGroup)
+	                .on('renderlet', function(chart){
+	                	chart.selectAll('rect.bar')
+	                		.each(function(d){d3.select(this).attr("style","fill: "+colorScale(d.x));})
+	                	}
+	                )
+	           	
+				seriesChart.width(800)
+					.height(400)
+					.chart(c => dc.lineChart(c))
+					.x(d3.scaleTime().domain(d3.extent(data, d => d.date)))
+					.dimension(typeByDayDimension)
+					.group(typeByDayGroup)
+					.colors(colorScale)
+					.brushOn(true)
+					.seriesAccessor(d => d.key[0])
+					.keyAccessor(d => d.key[1])
+					.valueAccessor(d => d.value)
+					.title(function(d){
+	                        return "Date: " + dateFormat(d.key) + "<br>"
+	                                + "Total of Crimes: " + d.value;
+	                    })
+					.legend(dc.legend().x(630).y(15).itemHeight(13).gap(5));
+					
+				dc.renderAll();
+	        });
+	</script>
+	 <!-- Bootstrap javascript files -->
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+		
+</body>
+</html>
