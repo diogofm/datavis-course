@@ -14,7 +14,7 @@
 integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA=="
 crossorigin=""></script>
 
-    <title> Earthquake Data</title>
+    <title>CSI Chicago season 2k18</title>
 
     <!-- Custom styles for this template -->
 	<link rel="stylesheet" href="css/dc.min.css">
@@ -39,10 +39,10 @@ crossorigin=""></script>
   	</main>
 	        <script type="text/javascript">   
 	        	let map = L.map('mapid').setView([41.865871, -87.628288], 10);
-	          	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { 
-	            	attribution: '&copy; <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors', 
-	            	maxZoom: 17})
-	            	.addTo(map);
+	L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+	attribution: "Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.",
+	maxZoom: 17
+	}).addTo(map);
 					
 				let barChart    = dc.barChart('#crimesByTypeChart');
 				let	seriesChart = dc.seriesChart('#crimesByDayChart');
